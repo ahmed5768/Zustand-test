@@ -1,9 +1,13 @@
-import {  useState } from "react";
+import { useState } from "react";
 import useStore from "../states/UseStore";
 
 function CounterAndTodo() {
   const [text, setText] = useState('');
-  const { count, increment, decrement, reset, theme, toggletheme, todos, addTodo, toggleTodo, removeTodo } = useStore();
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
+
+  const {
+    count, increment, decrement, reset, theme, toggletheme, todos, addTodo, toggleTodo, editTodo, removeTodo} = useStore();
 
   const handleAdd = () => {
     if (text.trim()) {
@@ -12,13 +16,26 @@ function CounterAndTodo() {
     }
   };
 
+  const handleChange = (e) => setText(e.target.value);
 
+  const handleEditClick = (todo) => {
+    setEditingId(todo.id);
+    setEditText(todo.text);
+  };
 
+  const handleEditSave = (id) => {
+    if (editText.trim()) {
+      editTodo(id, editText);
+      setEditingId(null);
+      setEditText('');
+    }
+  };
   return (
     <div className="min-h-screen flex bg-gray-900 text-white flex-col items-center p-10">
-      <h1 className="text-6xl mb-5">Zustand with Slice</h1>
-      <h1 className="text-4xl mb-2">COUNTER</h1>
-      <h2 className="text-2xl mb-4">Counter: {count}</h2>
+      <h1 className="text-4xl mb-5">Zustand with Slice</h1>
+
+      <h1 className="text-2xl mb-2">COUNTER</h1>
+      <h2 className="text-1xl mb-4">Counter: {count}</h2>
 
       <div className="space-x-4 mb-6">
         <button className="bg-red-500 text-white px-4 py-2 rounded-xl" onClick={increment}>Increment</button>
@@ -31,12 +48,12 @@ function CounterAndTodo() {
         Toggle Theme
       </button>
 
-      <h1 className="text-4xl mb-4">Todo</h1>
+      <h1 className="text-2xl mb-4">Todo</h1>
 
       <div className="mb-6">
         <input
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleChange}
           placeholder="Add a task"
           className="border border-gray-400 rounded p-2 mr-2"
         />
@@ -48,15 +65,36 @@ function CounterAndTodo() {
       <ul className="w-full max-w-md">
         {todos.map((todo) => (
           <li key={todo.id} className="mb-4 flex justify-between items-center">
-            <span
-              onClick={() => toggleTodo(todo.id)}
-              className={`${todo.done ? 'line-through text-gray-400' : ''} cursor-pointer`}
-            >
-              {todo.text}
-            </span>
-            <button onClick={() => removeTodo(todo.id)} className="bg-red-500 text-white px-2 py-1 rounded">
-              Delete
-            </button>
+            {editingId === todo.id ? (
+              <>
+                <input
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  className="border border-gray-400 rounded p-1 mr-2 text-white"
+                />
+                <button onClick={() => handleEditSave(todo.id)} className="bg-green-500 text-white px-2 py-1 rounded mr-2">
+                  Save
+                </button>
+
+              </>
+            ) : (
+              <>
+                <span
+                  onClick={() => toggleTodo(todo.id)}
+                  className={`${todo.done ? 'line-through text-gray-400' : ''} cursor-pointer`}
+                >
+                  {todo.text}
+                </span>
+                <div>
+                  <button onClick={() => handleEditClick(todo)} className="bg-yellow-500 text-white px-2 py-1 rounded mr-2">
+                    Edit
+                  </button>
+                  <button onClick={() => removeTodo(todo.id)} className="bg-red-500 text-white px-2 py-1 rounded">
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
           </li>
         ))}
       </ul>
